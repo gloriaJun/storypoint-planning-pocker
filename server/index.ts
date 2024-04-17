@@ -17,15 +17,15 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   io.on('connection', (socket) => {
-    console.log('>> Client connected');
+    console.log(`🤗 Client connected: ${socket.id}`);
 
-    socket.on('message', (data) => {
-      console.log('>> Received message: ', data);
-      //   io.emit('message', data);
+    socket.on('client:message', (data) => {
+      console.log(`🚀 Received message: `, data);
+      io.emit('server:message', 'Hello! Client!!!');
     });
 
-    socket.on('disconnect', () => {
-      console.log('>> Client disconnected');
+    socket.on('disconnect', (reason) => {
+      console.log(`👋 Client disconnected: ${reason}`);
     });
   });
 

@@ -1,52 +1,39 @@
 'use client';
 
-import { socket } from '@/api/socket';
+import { useSocket } from '@/components/socket-provider';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [transport, setTransport] = useState('N/A');
+  const { socket, isConnected } = useSocket();
+  const [receivedMessage, setReceivedMessage] = useState('');
 
   useEffect(() => {
-    if (socket.connected) {
-      onConnect();
+    if (!socket) {
+      return;
     }
 
-    function onConnect() {
-      setIsConnected(true);
-      setTransport(socket.io.engine.transport.name);
-
-      socket.io.engine.on('upgrade', (transport) => {
-        setTransport(transport.name);
-      });
-    }
-
-    function onDisconnect() {
-      setIsConnected(false);
-      setTransport('N/A');
-    }
-
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
+    socket.on('server:message', (data) => {
+      setReceivedMessage(data);
+    });
 
     return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
+      socket.off('server:message');
     };
-  }, []);
+  }, [socket]);
 
   return (
     <div>
       <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-      <p>Transport: {transport}</p>
       <button
         type="button"
         onClick={() => {
-          socket.emit('message', 'Hello! World!!!');
+          socket.emit('client:message', 'Hello! World!!!');
         }}
       >
         Send Message
       </button>
+
+      <p>Received Message: {receivedMessage}</p>
     </div>
   );
 }
